@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prince Pandey - Console Portfolio</title>
+    <style>
+        :root {
+            --console-bg: #1a1a1a;
+            --console-text: #00ff88;
+            --console-accent: #00cc66;
+            --console-border: #008844;
+        }
+
+        body {
+            background: var(--console-bg);
+            color: var(--console-text);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .terminal {
+            max-width: 800px;
+            margin: 0 auto;
+            border-left: 2px solid var(--console-accent);
+            padding-left: 1rem;
+            padding: 10px;
+        }
+
+        .prompt::before {
+            content: "> ";
+            color: var(--console-accent);
+        }
+
+        .type-effect {
+            border-right: 2px solid var(--console-text);
+            animation: blink 1s step-end infinite;
+        }
+
+        .command {
+            color: var(--console-accent);
+            cursor: pointer;
+            margin: 1rem 0;
+            padding: 12px 8px;
+            font-size: 0.9rem;
+        }
+
+        .command:hover {
+            text-decoration: underline;
+        }
+
+        .output {
+            margin: 1rem 0;
+            padding-left: 1rem;
+            border-left: 1px solid #333;
+        }
+
+        @keyframes blink {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: var(--console-text); }
+        }
+
+        .columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .edu-item {
+            margin: 1.5rem 0;
+            padding-left: 1rem;
+            border-left: 2px solid var(--console-accent);
+        }
+
+        .edu-item h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--console-accent);
+        }
+
+        .edu-item p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .accent {
+            color: var(--console-accent);
+        }
+
+        .console-window {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            min-height: 200px;
+            max-height: 70vh;
+            background: #1a1a1a;
+            border: 2px solid #00cc66;
+            z-index: 1000;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            color: #00ff88;
+        }
+
+        .window-content {
+            padding: 15px;
+            min-height: 300px;
+            overflow-y: auto;
+            color: var(--console-text);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-wrap: break-word;
+        }
+
+        .window-content br {
+            content: "";
+            display: block;
+            margin: 0;
+        }
+
+        .title-bar {
+            padding: 8px 15px;
+            background: #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #00cc66;
+        }
+
+        .window-content a {
+            color: var(--console-accent);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--console-accent);
+        }
+
+        .window-content a:hover {
+            text-decoration: underline;
+            border-bottom: none;
+        }
+
+        .ascii-art {
+            display: none; /* Hide on mobile */
+        }
+
+        #binary-rain {
+            animation: none; /* Disable on mobile */
+        }
+
+        /* Desktop styles */
+        @media (min-width: 768px) {
+            .terminal {
+                padding: 20px;
+            }
+            
+            .console-window {
+                width: 70%;
+                max-width: 600px;
+                min-height: 300px;
+                top: 55%;
+                transform: translate(-50%, -50%);
+            }
+            
+            .command {
+                padding: 15px 10px;
+                font-size: 1rem;
+            }
+            
+            .ascii-art {
+                display: block;
+            }
+            
+            #binary-rain {
+                animation: binary 3s linear infinite;
+            }
+            
+            .window-content {
+                padding: 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Touch optimization */
+        @media (hover: none) {
+            .command {
+                min-height: 48px; /* Better touch target */
+            }
+            
+            .close-btn {
+                padding: 12px;
+            }
+        }
+
+        @media (min-width: 480px) {
+            .window-content {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Add theme switcher */
+        .theme-switcher {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            padding: 5px;
+            border: 1px solid var(--console-border);
+        }
+
+        /* Loading animation */
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Terminal input */
+        .terminal-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .input-prompt {
+            color: var(--console-accent);
+        }
+
+        #command-input {
+            background: transparent;
+            border: none;
+            color: var(--console-text);
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            outline: none;
+        }
+
+        /* Light mode */
+        .light-mode {
+            --console-bg: #ffffff;
+            --console-text: #1a1a1a;
+            --console-accent: #006600;
+            --console-border: #003300;
+        }
+
+        /* Desktop positioning */
+        #help-window {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 320px;
+            max-height: 60vh;
+            z-index: 1001;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .command-list {
+            display: grid;
+            gap: 0.8rem;
+            padding: 8px 0;
+        }
+
+        .command-item {
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+        }
+
+        .command-name {
+            color: var(--console-accent);
+            min-width: 80px;
+            font-weight: 600;
+        }
+
+        .command-desc {
+            color: var(--console-text);
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        /* Mobile Adaptation */
+        @media (max-width: 768px) {
+            #help-window {
+                position: static;
+                width: 100%;
+                max-height: 300px;
+                margin: 1rem 0;
+                box-shadow: none;
+            }
+            
+            .command-item {
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .command-name {
+                font-weight: 700;
+            }
+        }
+
+        /* Ensure light mode overrides */
+        .light-mode .console-window {
+            background: #ffffff;
+            border-color: #006600;
+            color: #1a1a1a;
+        }
+
+        .light-mode .title-bar {
+            background: #f0f0f0;
+            border-color: #006600;
+        }
+
+        .light-mode .close-btn {
+            color: #006600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Switcher -->
+    <div class="theme-switcher" onclick="toggleTheme()">🌓</div>
+
+    <div class="terminal">
+        <div class="output">
+            <pre>
+  ____  _____ ___ _   _ ____  _____ 
+ |  _ \| ___|_ _| \ | |  _ \| ____|
+ | |_) |  _/ | ||  \| | | | |  _|  
+ |  __/| |___| || |\  | |_| | |___ 
+ |_|   |_____|___|_| \_|____/|_____|
+            </pre>
+        </div>
+
+        <div class="prompt type-effect" data-text="prince --full-stack-dev --Prompt-Engineer"></div>
+        
+        <div class="content-sections">
+            <div class="command" onclick="showSection('about')">about.md</div>
+            <div class="command" onclick="showSection('education')">education.record</div>
+            <div class="command" onclick="showSection('skills')">skills.sh</div>
+            <div class="command" onclick="showSection('projects')">projects.config</div>
+            <div class="command" onclick="showSection('contact')">contact.txt</div>
+        </div>
+
+        <div id="console-window" class="console-window">
+            <div class="title-bar">
+                <span id="window-title"></span>
+                <button class="close-btn" onclick="closeWindow()">✕</button>
+            </div>
+            <div id="window-content" class="window-content"></div>
+        </div>
+    </div>
+
+    <!-- Hidden PDF Link -->
+    <a id="pdf-download" hidden></a>
+
+    <!-- Add help window -->
+    <div id="help-window" class="console-window" style="display: none;">
+        <div class="title-bar">
+            <span>COMMAND REFERENCE</span>
+            <button class="close-btn" onclick="closeHelp()">✕</button>
+        </div>
+        <div class="window-content">
+            <div class="command-list">
+                <div class="command-item">
+                    <span class="command-name">about</span>
+                    <span class="command-desc">- Display bio information</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">skills</span>
+                    <span class="command-desc">- Show technical stack</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">projects</span>
+                    <span class="command-desc">- List key projects</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">clear</span>
+                    <span class="command-desc">- Reset terminal</span>
+                </div>
+                <div class="command-item">
+                    <span class="command-name">theme</span>
+                    <span class="command-desc">- Toggle dark/light mode</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function typeEffect(element, text, callback) {
+            let index = 0;
+            element.innerHTML = '';
+            
+            const typing = setInterval(() => {
+                element.innerHTML += text[index];
+                index++;
+                if(index >= text.length) {
+                    clearInterval(typing);
+                    if(callback) callback();
+                }
+            }, 50);
+        }
+
+        function showSection(section) {
+            const content = {
+                'about': `
+PRINCE PANDEY
+» Full-Stack Developer | AI Prompt Engineer
+
+[EMAIL]    <a href="mailto:princepandey3273@gmail.com" class="accent">princepandey3273@gmail.com</a>
+[PLATFORMS] <a href="https://linkedin.com/in/pandey-prince" target="_blank" class="accent">LinkedIn</a> | 
+            <a href="https://github.com/MrUnikPrince" target="_blank" class="accent">GitHub</a> | 
+            <a href="https://leetcode.com/u/PrincePandey3273" target="_blank" class="accent">LeetCode</a>
+        `.trim().replace(/\n/g, '<br>'),
+
+                'skills': `
+CORE TECHNICAL STACK
+» Languages:   Java | JavaScript | HTML5 | CSS3
+» Frameworks:  Node.js | Express.js | Bootstrap
+» Databases:   MongoDB | Mongoose
+» Tools:       Git | GitHub | VS Code | REST APIs | Cursor
+» AI/ML:       Prompt Engineering | LLM Integration
+» Security:    OAuth2.0 | Bcrypt | Session Management
+`.trim().replace(/\n/g, '<br>'),
+
+                'education': `
+ACADEMIC JOURNEY
+» BCA (8.0 CGPA)       2021-2024
+  Pentium Point Technical College
+
+» 12th (87%)          2020-2021
+  Sarswati Shishu Mandir
+
+» 10th (88%)          2018-2019
+  Sarswati Shishu Mandir
+        `.trim().replace(/\n/g, '<br>'),
+
+                'projects': `
+KEY DEVELOPMENTS
+[1] Placement Cell System
+» Tech: Node.js | Express | MongoDB
+» Features: Auth System | Admin Panel | Interview Tracking
+
+[2] Secure Auth System  
+» Tech: Passport.js | Google OAuth | Bcrypt
+» Features: Session Management | Encryption
+        `.trim(),
+
+                'certifications': `
+CREDENTIALS
+► Full Stack Web Dev - Coding Ninjas
+► DSA Alpha - ApnaCollege
+► HackerRank Problem Solving (Expert)
+► Generative AI - Coding Ninjas
+        `.trim(),
+
+                'contact': `
+CONNECT WITH ME
+[EMAIL]    <a href="mailto:princepandey3273@gmail.com" class="accent">princepandey3273@gmail.com</a>
+[LINKEDIN] <a href="https://linkedin.com/in/pandey-prince" target="_blank" class="accent">linkedin.com/in/pandey-prince</a>
+[GITHUB]   <a href="https://github.com/MrUnikPrince" target="_blank" class="accent">github.com/MrUnikPrince</a>
+[LEETCODE] <a href="https://leetcode.com/u/PrincePandey3273" target="_blank" class="accent">leetcode.com/u/PrincePandey3273</a>
+        `.trim()
+            };
+
+            const window = document.getElementById('console-window');
+            const contentElement = document.getElementById('window-content');
+            const titleElement = document.getElementById('window-title');
+            
+            titleElement.textContent = section.toUpperCase();
+            window.style.display = 'block';
+            contentElement.innerHTML = content[section].replace(/\n/g, '<br>');
+            
+            // Remove existing typing effect call
+            contentElement.innerHTML = content[section].replace(/\n/g, '<br>');
+        }
+
+        function closeWindow() {
+            document.getElementById('console-window').style.display = 'none';
+            document.getElementById('window-content').innerHTML = '';
+        }
+
+        // Initialize typing effect
+        document.addEventListener('DOMContentLoaded', () => {
+            const promptElement = document.querySelector('.type-effect');
+            typeEffect(promptElement, promptElement.dataset.text);
+        });
+
+        // Theme Management (fixed)
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            if(document.body.classList.contains('light-mode')) {
+                document.documentElement.style.setProperty('--console-bg', '#ffffff');
+                document.documentElement.style.setProperty('--console-text', '#1a1a1a');
+                document.documentElement.style.setProperty('--console-accent', '#006600');
+                document.documentElement.style.setProperty('--console-border', '#003300');
+            } else {
+                document.documentElement.style.setProperty('--console-bg', '#1a1a1a');
+                document.documentElement.style.setProperty('--console-text', '#00ff88');
+                document.documentElement.style.setProperty('--console-accent', '#00cc66');
+                document.documentElement.style.setProperty('--console-border', '#008844');
+            }
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+
+        // Initialize theme
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if(savedTheme === 'light') toggleTheme();
+        });
+
+        function showHelp() {
+            const helpContent = `
+AVAILABLE COMMANDS
+about     - Show about
+skills    - Technical skills
+projects  - My projects
+export    - Download resume
+clear     - Clear terminal
+theme     - Toggle theme
+            `.trim();
+            
+            const helpWindow = document.getElementById('help-window');
+            const helpContentEl = document.getElementById('help-content');
+            
+            helpContentEl.innerHTML = helpContent.replace(/\n/g, '<br>');
+            helpWindow.style.display = 'block';
+        }
+
+        function closeHelp() {
+            document.getElementById('help-window').style.display = 'none';
+        }
+
+        function exportPDF() {
+            const link = document.getElementById('pdf-download');
+            link.href = 'path/to/your-resume.pdf';
+            link.download = 'Prince_Pandey_Resume.pdf';
+            link.click();
+        }
+
+        function clearTerminal() {
+            document.querySelector('.output').innerHTML = '';
+        }
+
+        function createOutput(text) {
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'loading';
+            outputDiv.textContent = text;
+            document.querySelector('.output').appendChild(outputDiv);
+        }
+    </script>
+</body>
+</html>
